@@ -1,0 +1,48 @@
+﻿@model DataStoreWithToken.Models.Token
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Token</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.OtpHash)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.OtpHash)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.TokenHash)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.TokenHash)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Activated)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Activated)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Revoked)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Revoked)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DataStore)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DataStore.Id)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
