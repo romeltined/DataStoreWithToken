@@ -19,5 +19,7 @@ namespace DataStoreWithToken.Data
         public DbSet<DataStoreWithToken.Models.ItemDetail> ItemDetail { get; set; }
 
         public DbSet<DataStoreWithToken.Models.Token> Token { get; set; }
+
+        public DbSet<DataStoreWithToken.Models.ActiveToken> ActiveToken { get; set; }
     }
 }
