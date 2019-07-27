@@ -62,6 +62,21 @@ namespace DataStoreWithToken.Controllers
             // Gets list of claims.
             IEnumerable<Claim> claim = identity.Claims;
 
+            var otpHash = claim
+                .Where(x => x.Type == "Otp")
+                .FirstOrDefault().Value;
+
+            var token = _context.Token
+                .Where(o => o.OtpHash == otpHash)
+                .FirstOrDefault();
+
+            if (token!=null)
+            {
+                if (token.Revoked == true)
+                    return Unauthorized();
+
+            }
+
             // Gets name from claims. Generally it's an email address. c => c.Type == "Otp"
             var dataStoreId = claim
                 .Where(x => x.Type == "DataStoreId")

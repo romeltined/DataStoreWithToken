@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using DataStoreWithToken.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,12 @@ namespace DataStoreWithToken.Controllers
     public class OtpLoginController : ControllerBase
     {
         private IConfiguration _config;
+        private readonly ApplicationDbContext _context;
 
-        public OtpLoginController(IConfiguration config)
+        public OtpLoginController(IConfiguration config, ApplicationDbContext context)
         {
             _config = config;
+            _context = context;
         }
         // GET: api/OtpLogin
         [HttpGet]
@@ -43,26 +46,38 @@ namespace DataStoreWithToken.Controllers
         public IActionResult Post([FromBody] string value)
         {
             IActionResult response = Unauthorized();
-            var user = AuthenticateOtp(value);
+            //var dataStore = AuthenticateOtp(value);
 
-            if (user != null)
+            var token = _context.Token
+                .Where(o => o.OtpHash == value)
+                .FirstOrDefault();
+
+            if (token != null)
             {
-                var tokenString = GenerateJSONWebToken(user);
+
+                var tokenString = GenerateJSONWebToken(token.OtpHash, token.DataStoreId.ToString());
+
+                token.TokenHash = tokenString;
+                token.Activated = true;
+                _context.Update(token);
+                _context.SaveChanges();
+
                 response = Ok(new { token = tokenString });
+ 
             }
 
             return response;
         }
 
-        private string GenerateJSONWebToken(string value)
+        private string GenerateJSONWebToken(string otp, string dataStoreId)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim("Otp",value),
-                new Claim("DataStoreId", "1")
+                new Claim("Otp",otp),
+                new Claim("DataStoreId", dataStoreId)
             };
 
             var token = new JwtSecurityToken(_config["Jwt:Issuer"],

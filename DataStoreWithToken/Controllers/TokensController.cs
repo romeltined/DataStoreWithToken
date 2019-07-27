@@ -62,7 +62,7 @@ namespace DataStoreWithToken.Controllers
             if (ModelState.IsValid)
             {
                 token.OtpHash = CryptoHelper.GenerateOtp();
-                token.TokenHash = CryptoHelper.GenerateToken();
+                //token.TokenHash = CryptoHelper.GenerateToken();
                 token.Revoked = false;
                 token.Activated = false;
                 
