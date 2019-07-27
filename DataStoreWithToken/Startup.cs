@@ -16,6 +16,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.IO;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace DataStoreWithToken
 {
@@ -62,7 +64,14 @@ namespace DataStoreWithToken
                 .AddDefaultUI(UIFramework.Bootstrap4)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+                    .AddJsonOptions(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
+            var certificatesDirectory = new DirectoryInfo(@"C:\Users\romeltined\Source\Repos\DataStoreWithToken\Keys");
+            services.AddDataProtection() //(options => options.ApplicationDiscriminator = "StartpageCore")
+                //.SetApplicationName("StartpageCore")
+                .PersistKeysToFileSystem(certificatesDirectory);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

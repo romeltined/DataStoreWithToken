@@ -59,9 +59,10 @@ namespace DataStoreWithToken.Controllers
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new []
+            var claims = new[]
             {
-                new Claim("Otp",value)
+                new Claim("Otp",value),
+                new Claim("DataStoreId", "1")
             };
 
             var token = new JwtSecurityToken(_config["Jwt:Issuer"],

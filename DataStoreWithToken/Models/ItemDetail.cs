@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +15,10 @@ namespace DataStoreWithToken.Models
         public bool Cancelled { get; set; }
         public DateTime Created { get; set; }
 
+
         public int DataStoreItemId { get; set; }
+
+        [JsonIgnore]
         public DataStoreItem DataStoreItem { get; set; }
     }
 }

@@ -14,6 +14,8 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace DataStoreWithToken.Controllers
 {
@@ -24,13 +26,15 @@ namespace DataStoreWithToken.Controllers
     public class DataStoreItems1Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IDataProtector _protector;
         private IConfiguration _config;
         private const string AuthSchemes = JwtBearerDefaults.AuthenticationScheme;
 
-        public DataStoreItems1Controller(ApplicationDbContext context, IConfiguration config)
+        public DataStoreItems1Controller(ApplicationDbContext context, IConfiguration config, IDataProtectionProvider provider)
         {
             _context = context;
             _config = config;
+            _protector = provider.CreateProtector("ItemDetailsController");
         }
 
         // GET: api/DataStoreItems1
@@ -44,12 +48,11 @@ namespace DataStoreWithToken.Controllers
         }
 
         // GET: api/DataStoreItems1/5
-        [HttpGet("{id}")]
+        [HttpGet("{storeItemName}")]
         //[Authorize]
         [Authorize(AuthenticationSchemes = AuthSchemes)]
-        public async Task<ActionResult<DataStoreItem>> GetDataStoreItem(int id)
+        public IActionResult GetDataStoreItem(string storeItemName)
         {
-
 
             var accessToken = Request.Headers["Authorization"].ToString().Replace("Bearer", "").Trim();
             var otp = GetOtp(accessToken);
@@ -60,19 +63,41 @@ namespace DataStoreWithToken.Controllers
             IEnumerable<Claim> claim = identity.Claims;
 
             // Gets name from claims. Generally it's an email address. c => c.Type == "Otp"
-            var otpClaim = claim
-                .Where(x => x.Type == "Otp")
+            var dataStoreId = claim
+                .Where(x => x.Type == "DataStoreId")
                 .FirstOrDefault().Value;
 
 
-            var dataStoreItem = await _context.DataStoreItem.FindAsync(id);
+            //var dataStoreItem2 = await _context.DataStoreItem.FindAsync(1);
+
+            var dataStoreItem = _context.DataStoreItem
+                .Where(i => i.DataStoreId == int.Parse(dataStoreId) && i.StoreItemName==storeItemName)
+                .FirstOrDefault();
+            //.ToList();
 
             if (dataStoreItem == null)
             {
                 return NotFound();
             }
 
-            return dataStoreItem;
+            var itemDetails = _context.ItemDetail
+                .Where(i=>i.DataStoreItemId== dataStoreItem.Id)
+                .ToList();
+
+            if (itemDetails == null)
+            {
+                return NotFound();
+            }
+ 
+            foreach(ItemDetail d in itemDetails)
+            {
+                d.ItemDetailValue = _protector.Unprotect(d.ItemDetailValue);
+            }
+            
+            var content = JsonConvert.SerializeObject(itemDetails);
+
+            return (Ok(content));
+
         }
 
         // PUT: api/DataStoreItems1/5
