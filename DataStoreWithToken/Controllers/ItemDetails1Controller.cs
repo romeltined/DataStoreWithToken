@@ -101,18 +101,20 @@ namespace DataStoreWithToken.Controllers
                 .Where(x => x.Type == "DataStoreId")
                 .FirstOrDefault().Value;
 
-            var dataStoreItemId = _context.DataStoreItem
-                .Where(d => d.DataStoreId == int.Parse(dataStoreId) && d.StoreItemName == itemRecord.StoreItemName)
+            var dataStoreItem = _context.DataStoreItem
+                .Where(d => d.DataStoreId == int.Parse(dataStoreId) && 
+                            d.StoreItemName == itemRecord.StoreItemName &&
+                            d.Completed==false)
                 .FirstOrDefault();
 
-            if(dataStoreItemId==null)
+            if(dataStoreItem==null)
             {
                 return NotFound();
             }
 
             ItemDetail itemDetail = new ItemDetail();
 
-            itemDetail.DataStoreItemId = int.Parse(dataStoreId);
+            itemDetail.DataStoreItemId = dataStoreItem.Id;
             itemDetail.ItemDetailName = itemRecord.ItemDetailName;
             itemDetail.ItemDetailValue = _protector.Protect(itemRecord.ItemDetailValue);
 
