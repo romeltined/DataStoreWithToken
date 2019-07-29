@@ -55,7 +55,7 @@ namespace DataStoreWithToken.Controllers
         {
 
             var accessToken = Request.Headers["Authorization"].ToString().Replace("Bearer", "").Trim();
-            var otp = GetOtp(accessToken);
+            //var otp = GetOtp(accessToken);
 
             var identity = HttpContext.User.Identity as ClaimsIdentity;
 

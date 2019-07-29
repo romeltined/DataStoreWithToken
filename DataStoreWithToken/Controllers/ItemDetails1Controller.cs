@@ -9,6 +9,10 @@ using DataStoreWithToken.Data;
 using DataStoreWithToken.Models;
 using Microsoft.AspNetCore.DataProtection;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Security.Claims;
+using Newtonsoft.Json.Linq;
 
 namespace DataStoreWithToken.Controllers
 {
@@ -18,6 +22,7 @@ namespace DataStoreWithToken.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IDataProtector _protector;
+        private const string AuthSchemes = JwtBearerDefaults.AuthenticationScheme;
 
         public ItemDetails1Controller(ApplicationDbContext context, IDataProtectionProvider provider)
         {
@@ -79,9 +84,38 @@ namespace DataStoreWithToken.Controllers
 
         // POST: api/ItemDetails1
         [HttpPost]
-        public async Task<ActionResult<ItemDetail>> PostItemDetail(ItemDetail itemDetail)
+        [Authorize(AuthenticationSchemes = AuthSchemes)]
+        public async Task<ActionResult<ItemDetail>> PostItemDetail([FromBody] dynamic item)
         {
-            itemDetail.ItemDetailValue = _protector.Protect(itemDetail.ItemDetailValue);
+            ItemRecord itemRecord = JsonConvert.DeserializeObject<ItemRecord>(item.ToString());
+
+            var accessToken = Request.Headers["Authorization"].ToString().Replace("Bearer", "").Trim();
+            //var otp = GetOtp(accessToken);
+
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+            // Gets list of claims.
+            IEnumerable<Claim> claim = identity.Claims;
+
+            var dataStoreId = claim
+                .Where(x => x.Type == "DataStoreId")
+                .FirstOrDefault().Value;
+
+            var dataStoreItemId = _context.DataStoreItem
+                .Where(d => d.DataStoreId == int.Parse(dataStoreId) && d.StoreItemName == itemRecord.StoreItemName)
+                .FirstOrDefault();
+
+            if(dataStoreItemId==null)
+            {
+                return NotFound();
+            }
+
+            ItemDetail itemDetail = new ItemDetail();
+
+            itemDetail.DataStoreItemId = int.Parse(dataStoreId);
+            itemDetail.ItemDetailName = itemRecord.ItemDetailName;
+            itemDetail.ItemDetailValue = _protector.Protect(itemRecord.ItemDetailValue);
+
             _context.ItemDetail.Add(itemDetail);
             await _context.SaveChangesAsync();
 
