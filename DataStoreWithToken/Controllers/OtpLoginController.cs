@@ -55,7 +55,7 @@ namespace DataStoreWithToken.Controllers
             if (token != null)
             {
 
-                var tokenString = GenerateJSONWebToken(token.OtpHash, token.DataStoreId.ToString());
+                var tokenString = GenerateJSONWebToken(token.Id.ToString(), token.OtpHash, token.DataStoreId.ToString());
 
                 token.TokenHash = tokenString;
                 token.Activated = true;
@@ -69,13 +69,14 @@ namespace DataStoreWithToken.Controllers
             return response;
         }
 
-        private string GenerateJSONWebToken(string otp, string dataStoreId)
+        private string GenerateJSONWebToken(string id, string otp, string dataStoreId)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
+                new Claim("Id", id),
                 new Claim("Otp",otp),
                 new Claim("DataStoreId", dataStoreId)
             };

@@ -62,25 +62,25 @@ namespace DataStoreWithToken.Controllers
             // Gets list of claims.
             IEnumerable<Claim> claim = identity.Claims;
 
-            var otpHash = claim
-                .Where(x => x.Type == "Otp")
+            var id = claim
+                .Where(x => x.Type == "Id")
                 .FirstOrDefault().Value;
-
-            var token = _context.Token
-                .Where(o => o.OtpHash == otpHash)
-                .FirstOrDefault();
-
-            if (token!=null)
-            {
-                if (token.Revoked == true)
-                    return Unauthorized();
-
-            }
-
-            // Gets name from claims. Generally it's an email address. c => c.Type == "Otp"
+  
             var dataStoreId = claim
                 .Where(x => x.Type == "DataStoreId")
                 .FirstOrDefault().Value;
+
+            var token = _context.Token
+                .Where(o => o.Id == int.Parse(id) && o.Revoked==false)
+                .FirstOrDefault();
+
+            if (token==null)
+            {
+                return Unauthorized();
+
+            }
+
+
 
 
             //var dataStoreItem2 = await _context.DataStoreItem.FindAsync(1);
