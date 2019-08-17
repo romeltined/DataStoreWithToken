@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace DataStoreWithToken.Controllers
 {
@@ -56,8 +57,22 @@ namespace DataStoreWithToken.Controllers
             {
 
                 var tokenString = GenerateJSONWebToken(token.Id.ToString(), token.OtpHash, token.DataStoreId.ToString());
+                string tokenHash;
+                // Create a SHA256   
+                using (SHA256 sha256Hash = SHA256.Create())
+                {
+                    // ComputeHash - returns byte array  
+                    byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(tokenString));
 
-                token.TokenHash = tokenString;
+                    // Convert byte array to a string   
+                    StringBuilder builder = new StringBuilder();
+                    for (int i = 0; i < bytes.Length; i++)
+                    {
+                        builder.Append(bytes[i].ToString("x2"));
+                    }
+                    tokenHash = builder.ToString();
+                }
+                token.TokenHash = tokenHash;
                 token.Activated = true;
                 _context.Update(token);
                 _context.SaveChanges();
